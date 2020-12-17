@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Gitlet:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Gitlet_jar</output-path>
+    <root id="archive" name="Gitlet.jar">
+      <element id="module-output" name="Gitlet" />
+    </root>
+  </artifact>
+</component>
