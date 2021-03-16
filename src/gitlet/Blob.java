@@ -20,9 +20,4 @@ public class Blob implements Serializable {
     public String getFileName() {
         return fileName;
     }
-
-    public static Blob getBlob(String path) {
-        File file = new File(path);
-        return Utils.readObject(file, Blob.class);
-    }
 }

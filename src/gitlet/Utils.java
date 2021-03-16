@@ -16,6 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -28,6 +29,84 @@ class Utils {
 
     /** The length of a complete SHA-1 UID as a hexadecimal numeral. */
     static final int UID_LENGTH = 40;
+
+    static void updateFile(String fileName, Blob blob) {
+        File file = new File(fileName);
+        writeContents(file, (Object) blob.getContent());
+    }
+
+
+    static HashMap<String, String> getMap() {
+        // read the map from file 'stage', key is blob, value is blobName
+        String path = Directory.stage + "stage";
+        File stage = new File(path);
+        HashMap<String, String> map = new HashMap<>();
+        if (stage.exists()) {
+            map = readObject(stage, HashMap.class);
+        }
+        return map;
+    }
+
+    static void updateStage(HashMap<String, String> map) {
+        // update file 'stage'
+        writeObject(new File(Directory.stage + "stage"), map);
+    }
+
+    static Blob getBlob(String blobID) {
+        File file = new File(Directory.blob + blobID);
+        return readObject(file, Blob.class);
+    }
+
+    static String extractCurrBranch() {
+        String fullPath = Utils.getCurrBranch();
+        StringBuilder currBranch = new StringBuilder();
+        for (int i = fullPath.length() - 1; !Directory.sep.equals("" + fullPath.charAt(i)); i--) {
+            currBranch.insert(0, fullPath.charAt(i));
+        }
+        return currBranch.toString();
+    }
+
+    static void clearStage() {
+        File dir = new File(Directory.stage);
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (!file.delete()) {
+                    System.out.println("DEBUG: deleting staging file failed");
+                }
+            }
+        }
+    }
+
+    static String getCurrCommitID() {
+        String branch = getCurrBranch();
+        return Utils.readContentsAsString(new File(branch));
+    }
+
+    static Commit getCurrCommit() {
+        return getCommit(getCurrCommitID());
+    }
+
+    static String getCurrBranch() {
+        return readContentsAsString(new File(Directory.HEAD));
+    }
+    static Commit getCommit(String commitID) {
+        if (commitID.length() == 40) {
+            File file = new File(Directory.commit + commitID);
+            if (!file.exists()) {
+                return null;
+            }
+            return readObject(file, Commit.class);
+        }
+        List<String> commitIDs = Utils.plainFilenamesIn(Directory.commit);
+        for (String s : commitIDs) {
+            if (s.contains(commitID)) {
+                File file = new File(Directory.commit + s);
+                return readObject(file, Commit.class);
+            }
+        }
+        return null;
+    }
 
     /** Returns the SHA-1 hash of the concatenation of VALS, which may
      *  be any mixture of byte arrays and Strings. */

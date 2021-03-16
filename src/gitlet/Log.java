@@ -2,10 +2,10 @@ package gitlet;
 
 public class Log {
     public static void log() {
-        String sha = Commit.getCurrSHA();
+        String sha = Utils.getCurrCommitID();
 
         while (sha != null) {
-            Commit head = Commit.getCommit(sha);
+            Commit head = Utils.getCommit(sha);
             print(head, sha);
             sha = head.getParent();
         }
@@ -13,7 +13,7 @@ public class Log {
 
     public static void global_log() {
         for (String fileName : Utils.plainFilenamesIn(Directory.commit)) {
-            Commit commit = Commit.getCommit(fileName);
+            Commit commit = Utils.getCommit(fileName);
             print(commit, fileName);
         }
     }

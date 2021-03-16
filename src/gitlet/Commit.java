@@ -29,13 +29,13 @@ public class Commit implements Serializable {
     }
 
     public static void commit(String msg) {
-        HashMap<String, String> map = Add.getMap();
+        HashMap<String, String> map = Utils.getMap();
         if (map.size() == 0) {
             System.out.println("No changes added to the commit.");
             return;
         }
 
-        HashMap<String, String> files = getCurrHead().files;
+        HashMap<String, String> files = Utils.getCurrCommit().files;
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
             String fileName = entry.getKey(), blobName = entry.getValue();
@@ -51,41 +51,16 @@ public class Commit implements Serializable {
             }
         }
         // clear staging area
-        deleteStage();
+        Utils.clearStage();
 
         // create new commit
-        Commit nhead = new Commit(msg, (new Date()).toString(), getCurrSHA(), files);
+        Commit nhead = new Commit(msg, (new Date()).toString(), Utils.getCurrCommitID(), files);
         String sha = Utils.sha1((Object) Utils.serialize(nhead));
         // store new commit
         Utils.writeObject(new File(Directory.commit + sha), nhead);
         // update the head of commit tree
-        Utils.writeContents(new File(getCurrBranch()), sha);
+        Utils.writeContents(new File(Utils.getCurrBranch()), sha);
 
-    }
-
-    public static void deleteStage() {
-        File dir = new File(Directory.stage);
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (!file.delete()) {
-                    System.out.println("DEBUG: deleting staging file failed");
-                }
-            }
-        }
-    }
-
-    public static String getCurrSHA() {
-        String branch = getCurrBranch();
-        return Utils.readContentsAsString(new File(branch));
-    }
-
-    public static Commit getCurrHead() {
-        return getCommit(getCurrSHA());
-    }
-
-    public static String getCurrBranch() {
-        return Utils.readContentsAsString(new File(Directory.HEAD));
     }
 
     public HashMap<String, String> getFiles() {
@@ -102,10 +77,5 @@ public class Commit implements Serializable {
 
     public String getTimestamp() {
         return timestamp;
-    }
-
-    public static Commit getCommit(String sha) {
-        File file = new File(Directory.commit + sha);
-        return Utils.readObject(file, Commit.class);
     }
 }

@@ -3,7 +3,6 @@ package gitlet;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Add {
     public static void add(String[] fileNames) {
@@ -16,14 +15,14 @@ public class Add {
             }
         }
 
-        HashMap<String, String> map = getMap();
-        HashMap<String, String> currFiles = (Commit.getCurrHead()).getFiles();
+        HashMap<String, String> map = Utils.getMap();
+        HashMap<String, String> currCommit = (Utils.getCurrCommit()).getFiles();
         for (String fileName : fileNames) {
             File file  = new File(fileName);
             Blob blob = new Blob(fileName, Utils.readContents(file));
             String blobName = Utils.sha1((Object) Utils.serialize(blob));
 
-            if (currFiles != null && currFiles.getOrDefault(fileName, "").equals(blobName)) {
+            if (currCommit != null && currCommit.getOrDefault(fileName, "").equals(blobName)) {
                 // If the file is the same as the current version of the file and
                 // remove it from the staging area if it is already there
                 if (map != null && map.containsKey(fileName)) {
@@ -49,18 +48,6 @@ public class Add {
             Utils.writeObject(new File(Directory.stage + blobName), blob);
             map.put(fileName, blobName);
         }
-        // update file 'stage'
-        Utils.writeObject(new File(Directory.stage + "stage"), map);
-    }
-
-    public static HashMap<String, String> getMap() {
-        // read the map from file 'stage', key is blob, value is blobName
-        String path = Directory.stage + "stage";
-        File stage = new File(path);
-        HashMap<String, String> map = new HashMap<>();
-        if (stage.exists()) {
-            map = Utils.readObject(stage, HashMap.class);
-        }
-        return map;
+        Utils.updateStage(map);
     }
 }
